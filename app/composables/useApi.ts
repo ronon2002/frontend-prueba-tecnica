@@ -1,26 +1,24 @@
 export const useApi = () => {
   const config = useRuntimeConfig()
-  const router = useRouter()
+  const authStore = useAuthStore()
+
+  authStore.hydrate()
 
   const apiFetch = $fetch.create({
-    baseURL: config.public.apiBase, // Toma el hostlocal de nestjs
+    baseURL: config.public.apiBase,
 
     onRequest({ options }) {
-      const token = process.client ? localStorage.getItem('token') : null
-      if (token) {
+      if (authStore.token) {
         options.headers = {
           ...options.headers,
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authStore.token}`,
         }
       }
     },
 
     async onResponseError({ response }) {
       if (response.status === 401) {
-        if (process.client) {
-          localStorage.removeItem('token')
-          router.push('/login') // ✅ SIEMPRE página frontend
-        }
+        authStore.logout()
       }
     },
   })

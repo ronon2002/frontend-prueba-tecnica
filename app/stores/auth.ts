@@ -1,8 +1,7 @@
-import { defineStore } from 'pinia'
-
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    token: process.client ? localStorage.getItem('token') : null,
+    token: null as string | null,
+    hydrated: false,
   }),
 
   getters: {
@@ -10,6 +9,13 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    hydrate() {
+      if (process.client && !this.hydrated) {
+        this.token = localStorage.getItem('token')
+        this.hydrated = true
+      }
+    },
+
     setToken(token: string) {
       this.token = token
       localStorage.setItem('token', token)

@@ -1,40 +1,39 @@
 export const useDarkMode = () => {
-  const isDark = useState<boolean>('dark-mode', () => {
-    if (process.client) {
-      const saved = localStorage.getItem('dark-mode')
-      return saved ? saved === 'true' : true
+  const isDark = useState('darkMode', () => false)
+
+  const initDarkMode = () => {
+    if (import.meta.client) {
+      const stored = localStorage.getItem('darkMode')
+      if (stored !== null) {
+        isDark.value = stored === 'true'
+      }
+      applyDarkMode()
     }
-    return true
-  })
+  }
+
+  const applyDarkMode = () => {
+    if (import.meta.client) {
+      if (isDark.value) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+  }
 
   const toggleDarkMode = () => {
     isDark.value = !isDark.value
-
-    if (process.client) {
-      document.documentElement.classList.toggle('dark', isDark.value)
-      
-      localStorage.setItem('dark-mode', String(isDark.value))
+    if (import.meta.client) {
+      localStorage.setItem('darkMode', String(isDark.value))
+      applyDarkMode()
     }
   }
 
-  const setDarkMode = (value: boolean) => {
-    isDark.value = value
-    
-    if (process.client) {
-      document.documentElement.classList.toggle('dark', value)
-      localStorage.setItem('dark-mode', String(value))
-    }
+  if (import.meta.client) {
+    onMounted(() => {
+      initDarkMode()
+    })
   }
 
-  onMounted(() => {
-    if (process.client) {
-      document.documentElement.classList.toggle('dark', isDark.value)
-    }
-  })
-
-  return {
-    isDark: readonly(isDark),
-    toggleDarkMode,
-    setDarkMode
-  }
+  return { isDark, toggleDarkMode }
 }

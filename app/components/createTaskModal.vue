@@ -1,6 +1,7 @@
 <script setup lang="ts">
 interface Props {
   show: boolean
+  task?: Task | null
 }
 
 interface Task {
@@ -18,6 +19,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   close: []
   created: [task: Task]
+  updated: [task: Task]
 }>()
 
 const { apiFetch } = useApi()
@@ -29,6 +31,10 @@ const category = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
 
+const isEditing = computed(() => !!props.task)
+const modalTitle = computed(() => isEditing.value ? 'Editar Tarea' : 'Nueva Tarea')
+const submitButtonText = computed(() => isEditing.value ? 'Guardar cambios' : 'Crear tarea')
+
 const resetForm = () => {
   title.value = ''
   description.value = ''
@@ -36,6 +42,19 @@ const resetForm = () => {
   category.value = ''
   errorMessage.value = ''
 }
+
+// Cargar datos cuando se abre en modo edición
+watch(() => props.task, (newTask) => {
+  if (newTask) {
+    title.value = newTask.title
+    description.value = newTask.description || ''
+    // Convertir fecha ISO a formato yyyy-MM-dd si existe
+    dueDate.value = newTask.dueDate ? newTask.dueDate.split('T')[0] : ''
+    category.value = newTask.category || ''
+  } else {
+    resetForm()
+  }
+}, { immediate: true })
 
 const closeModal = () => {
   resetForm()
@@ -53,21 +72,33 @@ const handleSubmit = async () => {
   loading.value = true
 
   try {
-    const newTask = await apiFetch<Task>('/tasks', {
-      method: 'POST',
-      body: {
-        title: title.value.trim(),
-        description: description.value.trim() || undefined,
-        dueDate: dueDate.value || undefined,
-        category: category.value.trim() || undefined
-      }
-    })
+    const taskData = {
+      title: title.value.trim(),
+      description: description.value.trim() || undefined,
+      dueDate: dueDate.value || undefined,
+      category: category.value.trim() || undefined
+    }
 
-    emit('created', newTask)
+    if (isEditing.value && props.task) {
+      // Editar tarea existente - usar PUT en vez de PATCH
+      const updatedTask = await apiFetch<Task>(`/tasks/${props.task.id}`, {
+        method: 'PUT',
+        body: taskData
+      })
+      emit('updated', updatedTask)
+    } else {
+      // Crear nueva tarea
+      const newTask = await apiFetch<Task>('/tasks', {
+        method: 'POST',
+        body: taskData
+      })
+      emit('created', newTask)
+    }
+
     resetForm()
   } catch (error: any) {
-    console.error('Error al crear tarea:', error)
-    errorMessage.value = error.data?.message || 'Error al crear la tarea'
+    console.error('Error al guardar tarea:', error)
+    errorMessage.value = error.data?.message || 'Error al guardar la tarea'
   } finally {
     loading.value = false
   }
@@ -75,7 +106,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <Modal :show="show" title="Nueva Tarea" @close="closeModal">
+  <Modal :show="show" :title="modalTitle" @close="closeModal">
     <div v-if="errorMessage" class="mb-4 rounded-lg bg-red-500/10 border border-red-500/50 p-4">
       <p class="text-sm text-red-400">{{ errorMessage }}</p>
     </div>
@@ -164,8 +195,8 @@ const handleSubmit = async () => {
             :disabled="loading"
             class="flex-1 rounded-lg bg-indigo-600 dark:bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 dark:hover:bg-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-            <span v-if="loading">Creando...</span>
-            <span v-else>Crear tarea</span>
+            <span v-if="loading">{{ isEditing ? 'Guardando...' : 'Creando...' }}</span>
+            <span v-else>{{ submitButtonText }}</span>
             </button>
         </div>
     </form>
