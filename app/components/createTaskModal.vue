@@ -43,7 +43,6 @@ const resetForm = () => {
   errorMessage.value = ''
 }
 
-// Cargar datos cuando se abre en modo edición
 watch(() => props.task, (newTask) => {
   if (newTask) {
     title.value = newTask.title
@@ -53,7 +52,18 @@ watch(() => props.task, (newTask) => {
   } else {
     resetForm()
   }
-}, { immediate: true })
+}, { immediate: true, deep: true })
+
+watch(() => props.show, (isOpen) => {
+  if (isOpen && props.task) {
+    title.value = props.task.title
+    description.value = props.task.description || ''
+    dueDate.value = props.task.dueDate ? props.task.dueDate.split('T')[0] : ''
+    category.value = props.task.category || ''
+  } else if (!isOpen) {
+    resetForm()
+  }
+})
 
 const closeModal = () => {
   resetForm()

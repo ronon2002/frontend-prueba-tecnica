@@ -1,75 +1,19 @@
-# Nuxt Minimal Starter
+Incluye la autenticación en front, CRUD completo, filtros en tiempo real y manejo medio de estado con Pinia
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+- Instalación y Configuración
+Clonar Repositorio
+git clone https://github.com/ronon2002/frontend-prueba-tecnica
+code frontend
 
-## Setup
+Instalar Dependencias
 
-Make sure to install dependencies:
+- Configurar Variables de Entorno
+Copiar el archivo .env.example y cambiarle el nombre a .env
 
-```bash
-# npm
-npm install
+- Verificar Backend
+Asegúrate que el backend esté ejecutándose en http://localhost:3001
 
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
+- Ejecutar la Aplicación
 npm run dev
 
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+La aplicación estará disponible en: http://localhost:3000
