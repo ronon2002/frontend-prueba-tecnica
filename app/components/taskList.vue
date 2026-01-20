@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useTasksStore } from '~/stores/tasks'
 
 const tasksStore = useTasksStore()
+
+const searchQuery = ref('')
+const selectedCategory = ref('')
 
 onMounted(() => {
   tasksStore.fetchTasks()
@@ -17,8 +20,8 @@ onMounted(() => {
           Mis Tareas
         </h2>
         <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          {{ tasksStore.pendingTasks.length }} pendientes,
-          {{ tasksStore.completedTasks.length }} completadas
+          {{ tasksStore.filteredPendingTasks(searchQuery, selectedCategory).length }} pendientes,
+          {{ tasksStore.filteredCompletedTasks(searchQuery, selectedCategory).length }} completadas
         </p>
       </div>
       <button
@@ -32,6 +35,12 @@ onMounted(() => {
       </button>
     </div>
 
+    <!-- Filtros -->
+    <TaskFilters
+      v-model:searchQuery="searchQuery"
+      v-model:selectedCategory="selectedCategory"
+    />
+
     <ClientOnly>
         <div v-if="tasksStore.loading" class="flex items-center justify-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
@@ -41,13 +50,13 @@ onMounted(() => {
         <p class="text-sm text-red-400">{{ tasksStore.error }}</p>
         </div>
             <div v-else-if="tasksStore.tasks.length > 0" class="space-y-4">
-            <div v-if="tasksStore.pendingTasks.length > 0">
+            <div v-if="tasksStore.filteredPendingTasks(searchQuery, selectedCategory).length > 0">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                 Pendientes
                 </h3>
                 <div class="space-y-2">
                 <div
-                    v-for="task in tasksStore.pendingTasks"
+                    v-for="task in tasksStore.filteredPendingTasks(searchQuery, selectedCategory)"
                     :key="task.id"
                     class="group flex items-start gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
                 >
@@ -92,13 +101,13 @@ onMounted(() => {
                 </div>
             </div>
 
-            <div v-if="tasksStore.completedTasks.length > 0">
+            <div v-if="tasksStore.filteredCompletedTasks(searchQuery, selectedCategory).length > 0">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                 Completadas
                 </h3>
                 <div class="space-y-2">
                 <div
-                    v-for="task in tasksStore.completedTasks"
+                    v-for="task in tasksStore.filteredCompletedTasks(searchQuery, selectedCategory)"
                     :key="task.id"
                     class="group flex items-start gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4 opacity-75 hover:opacity-100 transition-opacity"
                 >

@@ -48,7 +48,6 @@ watch(() => props.task, (newTask) => {
   if (newTask) {
     title.value = newTask.title
     description.value = newTask.description || ''
-    // Convertir fecha ISO a formato yyyy-MM-dd si existe
     dueDate.value = newTask.dueDate ? newTask.dueDate.split('T')[0] : ''
     category.value = newTask.category || ''
   } else {
@@ -80,7 +79,6 @@ const handleSubmit = async () => {
     }
 
     if (isEditing.value && props.task) {
-      // Editar tarea existente - usar PUT en vez de PATCH
       const updatedTask = await apiFetch<Task>(`/tasks/${props.task.id}`, {
         method: 'PUT',
         body: taskData

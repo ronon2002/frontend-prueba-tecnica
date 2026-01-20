@@ -18,11 +18,77 @@ export const useTasksStore = defineStore('tasks', {
     loading: false,
     error: '',
     showCreateModal: false,
+    editingTask: null as Task | null,
   }),
 
   getters: {
     completedTasks: (state) => state.tasks.filter(t => t.completed),
     pendingTasks: (state) => state.tasks.filter(t => !t.completed),
+    isEditing: (state) => state.editingTask !== null,
+    
+    filteredTasks: (state) => {
+      return (searchQuery: string, category: string) => {
+        let filtered = state.tasks
+
+        // Filtrar por búsqueda
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase()
+          filtered = filtered.filter(task => 
+            task.title.toLowerCase().includes(query) ||
+            (task.description?.toLowerCase().includes(query) ?? false)
+          )
+        }
+
+        // Filtrar por categoría
+        if (category) {
+          filtered = filtered.filter(task => task.category === category)
+        }
+
+        return filtered
+      }
+    },
+
+    filteredPendingTasks: (state) => {
+      return (searchQuery: string, category: string) => {
+        const filtered = state.tasks.filter(t => !t.completed)
+        let result = filtered
+
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase()
+          result = result.filter(task => 
+            task.title.toLowerCase().includes(query) ||
+            (task.description?.toLowerCase().includes(query) ?? false)
+          )
+        }
+
+        if (category) {
+          result = result.filter(task => task.category === category)
+        }
+
+        return result
+      }
+    },
+
+    filteredCompletedTasks: (state) => {
+      return (searchQuery: string, category: string) => {
+        const filtered = state.tasks.filter(t => t.completed)
+        let result = filtered
+
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase()
+          result = result.filter(task => 
+            task.title.toLowerCase().includes(query) ||
+            (task.description?.toLowerCase().includes(query) ?? false)
+          )
+        }
+
+        if (category) {
+          result = result.filter(task => task.category === category)
+        }
+
+        return result
+      }
+    },
   },
 
   actions: {
@@ -45,9 +111,8 @@ export const useTasksStore = defineStore('tasks', {
     async toggleTask(task: Task) {
       try {
         const { apiFetch } = useApi()
-        const updatedTask = await apiFetch<Task>(`/tasks/${task.id}`, {
+        const updatedTask = await apiFetch<Task>(`/tasks/${task.id}/complete`, {
           method: 'PATCH',
-          body: { completed: !task.completed },
         })
 
         const index = this.tasks.findIndex(t => t.id === task.id)
